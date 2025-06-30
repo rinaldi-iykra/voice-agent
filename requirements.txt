@@ -101,8 +101,8 @@ supabase==2.15.3
 supafunc==0.9.4
 sympy==1.14.0
 tomli==2.2.1
-# torch==2.7.1
-# torchaudio==2.7.1
+torch==2.7.1
+torchaudio==2.7.1
 tqdm==4.67.1
 typer==0.16.0
 typing-inspection==0.4.1
@@ -113,5 +113,5 @@ watchfiles==1.1.0
 websockets==13.1
 win32_setctime==1.2.0
 yarl==1.20.1
-# xformers==0.0.30
+xformers==0.0.30
 azure-cognitiveservices-speech==1.42.0
