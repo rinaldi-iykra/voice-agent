@@ -1,4 +1,5 @@
 .wav
+*.wav
 *.env
 /venv
 transcriptions.db

@@ -63,7 +63,7 @@ class MurfTTSService(TTSService, EventEmitter):
             style: Voice style to use
             multi_native_locale: Locale for multilingual support
         """
-        BaseTTSService.__init__(self)
+        TTSService.__init__(self)
         EventEmitter.__init__(self)
         
         self.api_key = api_key
@@ -143,7 +143,7 @@ class OpenAITTSService(TTSService, EventEmitter):
             model: Model to use (tts-1, tts-1-hd)
             speed: Speech speed (0.25 to 4.0)
         """
-        BaseTTSService.__init__(self)
+        TTSService.__init__(self)
         EventEmitter.__init__(self)
         
         self.api_key = api_key
