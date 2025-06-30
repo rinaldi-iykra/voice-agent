@@ -113,7 +113,11 @@ class MurfTTSService(TTSService, EventEmitter):
             await self.emit("on_tts_error", self, str(e))
             return None
 
+    async def run_tts(self, text: str) -> Optional[bytes]:
+        return await self.synthesize(text)
+
     async def process_frame(self, frame: TTSTextFrame) -> Optional[bytes]:
+
         """Process a TTSTextFrame and return audio data.
 
         Args:
