@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Summary Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 1rem;
+            height: 100vh;
+            width: 300px;
+            flex-shrink: 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .main-content {
+            flex: 1;
+            padding: 2rem 3vw;
+            background-color: #f8f9fa;
+            min-width: 0;
+            max-width: 100vw;
+            margin-left: 300px;
+        }
+        .call-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .call-item:hover {
+            background-color: #2d2d2d;
+        }
+        .call-item.active {
+            background-color: #3b82f6;
+            color: #fff;
+            border-left: 4px solid #fff;
+        }
+        .message-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .message {
+            max-width: 80%;
+            margin: 8px;
+            padding: 12px;
+            border-radius: 12px;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+        }
+        .assistant-message {
+            background-color: #f5f5f5;
+            margin-right: auto;
+        }
+        .sentiment-gauge {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .sentiment-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .sentiment-positive { background-color: #10b981; }
+        .sentiment-neutral { background-color: #f59e0b; }
+        .sentiment-negative { background-color: #ef4444; }
+        .stats-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            min-width: 220px;
+            flex: 1 1 220px;
+        }
+        .disposition-success { border-left: 4px solid #10b981; }
+        .disposition-followup { border-left: 4px solid #f59e0b; }
+        .disposition-rejected { border-left: 4px solid #ef4444; }
+        .summary-section {
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        .back-btn i {
+            margin-right: 0.5rem;
+        }
+        .notification-btn {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .notification-btn:hover {
+            background: #2563eb;
+            transform: scale(1.05);
+        }
+        .notification-badge {
+            position: absolute;
+            top: -0.25rem;
+            right: -0.25rem;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 1.25rem;
+            height: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .notification-panel {
+            position: fixed;
+            top: 5rem;
+            right: 1.5rem;
+            width: 20rem;
+            max-height: 25rem;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e5e7eb;
+            z-index: 999;
+            overflow: hidden;
+            transform: translateY(-10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .notification-panel.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        .notification-header {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .notification-list {
+            max-height: 18rem;
+            overflow-y: auto;
+        }
+        .notification-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .notification-item:hover {
+            background: #f9fafb;
+        }
+        .notification-item.unread {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+        }
+        .notification-footer {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        @media (max-width: 900px) {
+            .dashboard-container { flex-direction: column; }
+            .sidebar { width: 100vw; height: auto; position: static; }
+            .main-content { margin-left: 0; padding: 1rem; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <!-- Back Button -->
+            <a href="/static/index.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Kembali ke Beranda
+            </a>
+            <div class="mb-6 flex items-center gap-3">
+                <img src="/assets/bsi-syariah.png" alt="BSI Syariah Logo" class="h-10 w-10 rounded-full bg-white p-1 shadow" />
+                <h1 class="text-xl font-bold mb-2">BSI Syariah</h1>
+            </div>
+            <div class="text-sm text-gray-400 mb-6">Pilih panggilan untuk melihat detail</div>
+            <div class="mb-6">
+                <button onclick="window.location.href='/call'" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i>
+                    Lakukan Panggilan
+                </button>
+            </div>
+            
+
+
+            <div id="calls-list" class="space-y-2">
+                <!-- Call list items will be inserted here -->
+            </div>
+        </div>
+
+        <div class="main-content relative">
+            <!-- Notification Button -->
+            <button id="notification-btn" class="notification-btn">
+                <i class="fas fa-bell text-xl"></i>
+                <span id="notification-badge" class="notification-badge" style="display: none;">0</span>
+            </button>
+
+            <!-- Notification Panel -->
+            <div id="notification-panel" class="notification-panel">
+                <div class="notification-header">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-900">Notifikasi</h3>
+                        <button id="mark-all-read" class="text-sm text-blue-600 hover:text-blue-800">Tandai Semua Dibaca</button>
+                    </div>
+                </div>
+                <div id="notification-list" class="notification-list">
+                    <!-- Notifications will be inserted here -->
+                </div>
+                <div class="notification-footer">
+                    <button class="w-full text-sm text-gray-600 hover:text-gray-800">Lihat Semua Notifikasi</button>
+                </div>
+            </div>
+
+            <div id="call-details" class="space-y-6">
+                <!-- Call details will be shown here -->
+                <div class="text-center text-gray-500 py-12">
+                    Pilih panggilan dari sidebar untuk melihat detail
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // SQLite API endpoints
+        const API_BASE = window.location.origin;
+
+        async function loadCalls() {
+            try {
+                const response = await fetch(`${API_BASE}/api/transcriptions`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                const callsList = document.getElementById('calls-list');
+                callsList.innerHTML = data.transcriptions.map((call, index) => createCallListItem(call, index)).join('');
+
+                // Add click handlers to call items
+                document.querySelectorAll('.call-item').forEach(item => {
+                    item.addEventListener('click', async () => {
+                        // Update active state
+                        document.querySelectorAll('.call-item').forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+
+                        // Show loading state
+                        const callDetails = document.getElementById('call-details');
+                        callDetails.innerHTML = '<div class="text-center py-12"><i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i></div>';
+
+                        // Load and display call details
+                        const index = parseInt(item.dataset.index);
+                        callDetails.innerHTML = await createCallDetails(data.transcriptions[index]);
+                    });
+                });
+
+                // Select first call by default
+                if (data.transcriptions.length > 0) {
+                    document.querySelector('.call-item').click();
+                }
+            } catch (error) {
+                console.error('Error loading calls:', error);
+                document.getElementById('calls-list').innerHTML = `
+                    <div class="text-red-500 text-center">
+                        Error loading calls. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function determineDisposition(messages) {
+            const hasPhoneNumber = messages.some(msg => 
+                msg.role === 'user' && /\d{10,}/.test(msg.content)
+            );
+            const hasInterest = messages.some(msg => 
+                msg.role === 'user' && 
+                (msg.content.toLowerCase().includes('tertarik') || 
+                 msg.content.toLowerCase().includes('ya'))
+            );
+
+            if (hasPhoneNumber && hasInterest) return 'success';
+            if (hasInterest) return 'followup';
+            return 'rejected';
+        }
+
+        function formatTimestamp(timestamp) {
+            return new Date(timestamp).toLocaleString('id-ID', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+        }
+
+        function createCallListItem(call, index) {
+            const timestamp = formatTimestamp(call.created_at);
+            return `
+                <div class="call-item" data-index="${index}">
+                    <div class="text-sm font-medium">${timestamp}</div>
+                    <div class="text-xs text-gray-400">ID: ${call.id}</div>
+                </div>
+            `;
+        }
+
+        // --- Conversation Scoring Functions ---
+        function checkShariaCompliance(messages) {
+            // Keywords for sharia compliance
+            const keywords = [
+                /riba/i,
+                /gharar/i,
+                /maysir/i,
+                /judi/i,
+                /bunga/i,
+                /haram/i
+            ];
+            const allText = messages.map(m => m.content).join(' ');
+            for (const kw of keywords) {
+                if (kw.test(allText)) return 'Flag';
+            }
+            return 'Pass';
+        }
+
+        function detectLeadIntent(messages) {
+            // Regex triggers for lead intent
+            const triggers = [
+                { tag: 'KPR', regex: /kpr|kredit pemilikan rumah|mortgage/i },
+                { tag: 'Tabungan', regex: /tabungan|rekening baru|open account/i },
+                { tag: 'Deposito', regex: /deposito/i },
+                { tag: 'Kartu Kredit', regex: /kartu kredit|credit card/i }
+            ];
+            const allText = messages.map(m => m.content).join(' ');
+            for (const t of triggers) {
+                if (t.regex.test(allText)) return t.tag;
+            }
+            return 'None';
+        }
+
+        function normalizeSentiment(sentimentScore) {
+            // OpenAI returns 0-100, VADER-ID is -1 to +1
+            // We'll map 0-100 to -1 to +1 for display
+            return ((sentimentScore / 100) * 2 - 1).toFixed(2);
+        }
+
+        function calculateTotalScore(sentimentScore, compliance, leadIntent) {
+            // Sentiment: 0-100, Compliance: Pass=1, Flag=0, Lead: tag=1, None=0
+            const s = sentimentScore / 100;
+            const c = compliance === 'Pass' ? 1 : 0;
+            const l = leadIntent !== 'None' ? 1 : 0;
+            return Math.round(s * 40 + c * 30 + l * 30);
+        }
+
+        async function createCallDetails(call) {
+            // Use pre-processed data from the database
+            const processed_data = call;
+            const messages = processed_data.messages;
+            
+            // Check if analytics data exists
+            const hasAnalytics = processed_data.sentiment && processed_data.summary && 
+                                processed_data.sentiment.sentiment && 
+                                processed_data.summary.interest_summary &&
+                                processed_data.summary.interest_summary !== "Minat pelanggan perlu dianalisis lebih lanjut";
+            
+            // Always show the audio player using the value from the JSON
+            const audioFile = call.audio_file; // This is the audio_file from the API response
+            const audioPlayer = `
+                <div class="stats-card mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                        <i class="fas fa-volume-up mr-2"></i>
+                        Rekaman Panggilan
+                    </h3>
+                    <audio controls class="w-full" preload="metadata">
+                        <source src="/audio/${audioFile}" type="audio/wav">
+                        Browser Anda tidak mendukung pemutaran audio.
+                    </audio>
+                    <div class="mt-2 text-sm text-gray-500">
+                        <i class="fas fa-file-audio mr-1"></i>
+                        ${audioFile}
+                    </div>
+                </div>
+            `;
+            
+            if (!hasAnalytics) {
+                // No analysis available, show basic call info only
+                return `
+                    <div class="summary-section">
+                        <div class="flex justify-between items-start mb-4">
+                            <h2 class="text-xl font-bold text-gray-700">Ringkasan Panggilan</h2>
+                            <button onclick="deleteTranscription(${call.id})" 
+                                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
+                                <i class="fas fa-trash mr-1"></i>
+                                Hapus Panggilan
+                            </button>
+                        </div>
+                        <div class="text-center py-8">
+                            <i class="fas fa-info-circle text-4xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 mb-2">Analisis tidak tersedia untuk panggilan ini</p>
+                            <p class="text-sm text-gray-400">Panggilan mungkin terlalu pendek atau tidak ada konten yang cukup untuk dianalisis</p>
+                        </div>
+                    </div>
+                    
+                    ${audioPlayer}
+                    
+                    <div class="stats-card">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4">Riwayat Percakapan</h3>
+                        <div class="message-container p-4">
+                            ${messages.map(msg => {
+                                if (msg.role === 'system') return '';
+                                const messageClass = msg.role === 'user' ? 'user-message' : 'assistant-message';
+                                return `
+                                    <div class="message ${messageClass}">
+                                        <div class="font-semibold mb-1">
+                                            <i class="fas ${msg.role === 'user' ? 'fa-user' : 'fa-robot'} mr-2"></i>
+                                            ${msg.role === 'user' ? 'Pelanggan' : 'Melina'}
+                                        </div>
+                                        <div>${msg.content}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Extract pre-processed analytics
+            const sentiment = processed_data.sentiment || { sentiment: "neutral", score: 50 };
+            const summary = processed_data.summary || {
+                interest_summary: "Minat pelanggan perlu dianalisis lebih lanjut",
+                followup_recommendation: "Hubungi kembali pelanggan untuk informasi lebih detail"
+            };
+            const disposition = processed_data.disposition || "rejected";
+            const compliance = processed_data.compliance || "Pass";
+            const lead_intent = processed_data.lead_intent || "None";
+            const total_score = processed_data.total_score || 50;
+            
+            const sentimentNorm = normalizeSentiment(sentiment.score);
+            
+            const dispositionText = {
+                'success': 'Berhasil - Lead Tertangkap',
+                'followup': 'Perlu Tindak Lanjut',
+                'rejected': 'Ditolak'
+            }[disposition];
+
+            const dispositionIcon = {
+                'success': 'fa-check-circle',
+                'followup': 'fa-clock',
+                'rejected': 'fa-times-circle'
+            }[disposition];
+
+            const dispositionColor = {
+                'success': 'text-green-500',
+                'followup': 'text-yellow-500',
+                'rejected': 'text-red-500'
+            }[disposition];
+
+            return `
+                <div class="summary-section">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-xl font-bold text-gray-700">Ringkasan Panggilan</h2>
+                        <button onclick="deleteTranscription(${call.id})" 
+                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
+                            <i class="fas fa-trash mr-1"></i>
+                            Hapus Panggilan
+                        </button>
+                    </div>
+                    <div class="mb-2 text-lg font-semibold text-gray-700">Ringkasan Minat Pelanggan</div>
+                    <div class="mb-2 text-gray-700">${summary.interest_summary}</div>
+                    <div class="mb-1 text-lg font-semibold text-gray-700">Rekomendasi Tindak Lanjut</div>
+                    <div class="text-gray-700">${summary.followup_recommendation}</div>
+                </div>
+                
+                ${audioPlayer}
+                
+                <div class="stats-card mb-6">
+                    <div class="text-lg font-semibold mb-2">Skor Percakapan</div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <div class="font-semibold">Sentimen</div>
+                            <div class="text-sm">${sentimentNorm} (OpenAI, 0-100: ${sentiment.score})</div>
+                        </div>
+                        <div>
+                            <div class="font-semibold">Kepatuhan Syariah</div>
+                            <div class="text-sm">${compliance}</div>
+                        </div>
+                        <div>
+                            <div class="font-semibold">Minat Produk</div>
+                            <div class="text-sm">${lead_intent}</div>
+                        </div>
+                        <div>
+                            <div class="font-semibold">Skor Total</div>
+                            <div class="text-2xl font-bold">${total_score} / 100</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500">Bobot: Sentimen 40% · Kepatuhan 30% · Minat 30%</div>
+                </div>
+                <div class="flex flex-wrap gap-6 mb-6">
+                    <div class="stats-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Analisis Sentimen</h3>
+                                <div class="mt-2">
+                                    <div class="sentiment-gauge">
+                                        <div class="sentiment-fill sentiment-${sentiment.sentiment}" 
+                                             style="width: ${sentiment.score}%"></div>
+                                    </div>
+                                    <div class="mt-2 text-sm text-gray-600">
+                                        ${sentiment.sentiment === 'positive' ? 'Positif' : 
+                                          sentiment.sentiment === 'negative' ? 'Negatif' : 'Netral'} 
+                                        (${sentiment.score}%)
+                                    </div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chart-line text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Status Panggilan</h3>
+                                <div class="mt-2 flex items-center">
+                                    <i class="fas ${dispositionIcon} ${dispositionColor} mr-2"></i>
+                                    <span class="text-sm text-gray-600">${dispositionText}</span>
+                                </div>
+                            </div>
+                            <i class="fas fa-phone-alt text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Durasi Panggilan</h3>
+                                <div class="mt-2 text-sm text-gray-600">
+                                    ${processed_data.message_count || messages.length} pesan ditukar
+                                </div>
+                            </div>
+                            <i class="fas fa-clock text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card disposition-${disposition}">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Riwayat Percakapan</h3>
+                    <div class="message-container p-4">
+                        ${messages.map(msg => {
+                            if (msg.role === 'system') return '';
+                            const messageClass = msg.role === 'user' ? 'user-message' : 'assistant-message';
+                            return `
+                                <div class="message ${messageClass}">
+                                    <div class="font-semibold mb-1">
+                                        <i class="fas ${msg.role === 'user' ? 'fa-user' : 'fa-robot'} mr-2"></i>
+                                        ${msg.role === 'user' ? 'Pelanggan' : 'Melina'}
+                                    </div>
+                                    <div>${msg.content}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+        });
+
+        async function deleteTranscription(transcriptionId) {
+            if (!confirm('Apakah Anda yakin ingin menghapus panggilan ini? Tindakan ini tidak dapat dibatalkan.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/transcriptions/${transcriptionId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(`Error menghapus panggilan: ${data.error}`);
+                    return;
+                }
+                
+                // Show success message
+                alert('Panggilan berhasil dihapus!');
+                
+                // Reload the calls list
+                loadCalls();
+                
+            } catch (error) {
+                console.error('Error deleting transcription:', error);
+                alert('Gagal menghapus panggilan. Silakan coba lagi.');
+            }
+        }
+
+        // Notification System
+        let notifications = [
+            {
+                id: 1,
+                title: 'Panggilan Baru Masuk',
+                message: 'Panggilan dari nasabah tentang produk KPR Syariah',
+                time: '5 menit yang lalu',
+                type: 'call',
+                read: false
+            },
+            {
+                id: 2,
+                title: 'Laporan Harian',
+                message: 'Laporan performa harian telah tersedia',
+                time: '1 jam yang lalu',
+                type: 'report',
+                read: false
+            },
+            {
+                id: 3,
+                title: 'Sistem Update',
+                message: 'Sistem telah diperbarui dengan fitur baru',
+                time: '3 jam yang lalu',
+                type: 'system',
+                read: true
+            }
+        ];
+
+        function updateNotificationBadge() {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            const badge = document.getElementById('notification-badge');
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function formatNotificationTime(timeStr) {
+            return timeStr;
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                'call': 'fas fa-phone',
+                'report': 'fas fa-chart-bar',
+                'system': 'fas fa-cog',
+                'default': 'fas fa-bell'
+            };
+            return icons[type] || icons.default;
+        }
+
+        function showNotificationPanel() {
+            const panel = document.getElementById('notification-panel');
+            const notificationList = document.getElementById('notification-list');
+            
+            // Generate notification items
+            notificationList.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${!notification.read ? 'unread' : ''}" 
+                     onclick="markAsRead(${notification.id})">
+                    <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0 mt-1">
+                            <i class="${getNotificationIcon(notification.type)} text-blue-500"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-medium text-gray-900 text-sm">${notification.title}</div>
+                            <div class="text-gray-600 text-xs mt-1">${notification.message}</div>
+                            <div class="text-gray-400 text-xs mt-1">${formatNotificationTime(notification.time)}</div>
+                        </div>
+                        ${!notification.read ? '<div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></div>' : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            panel.classList.toggle('show');
+        }
+
+        function markAsRead(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.read = true;
+                updateNotificationBadge();
+                showNotificationPanel(); // Refresh the panel
+            }
+        }
+
+        function markAllAsRead() {
+            notifications.forEach(n => n.read = true);
+            updateNotificationBadge();
+            showNotificationPanel(); // Refresh the panel
+        }
+
+        function addNotification(title, message, type = 'default') {
+            const newNotification = {
+                id: Date.now(),
+                title,
+                message,
+                time: 'Baru saja',
+                type,
+                read: false
+            };
+            notifications.unshift(newNotification);
+            updateNotificationBadge();
+        }
+
+        // Initialize notification system
+        document.addEventListener('DOMContentLoaded', function() {
+            const notificationBtn = document.getElementById('notification-btn');
+            const markAllReadBtn = document.getElementById('mark-all-read');
+            
+            // Toggle notification panel
+            notificationBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showNotificationPanel();
+            });
+            
+            // Mark all as read
+            markAllReadBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                markAllAsRead();
+            });
+            
+            // Close panel when clicking outside
+            document.addEventListener('click', function(e) {
+                const panel = document.getElementById('notification-panel');
+                const btn = document.getElementById('notification-btn');
+                
+                if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                    panel.classList.remove('show');
+                }
+            });
+            
+            // Initialize badge
+            updateNotificationBadge();
+            
+            // Load calls after notification system is ready
+            loadCalls();
+        });
+    </script>
+</body>
+</html>

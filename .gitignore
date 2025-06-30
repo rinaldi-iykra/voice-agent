@@ -1,0 +1,5 @@
+.wav
+*.env
+/venv
+transcriptions.db
+__pycache__/

@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSI Syariah - Voice Assistant Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Notification Styles */
+        .notification-btn {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: linear-gradient(135deg, #ff4757, #ff3838);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+        }
+        
+        .notification-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            max-height: 400px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .notification-panel.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .notification-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .notification-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notification-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 4px;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .notification-message {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.4;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .notification-icon {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f3f4f6;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+        
+        .notification-icon i {
+            font-size: 14px;
+            color: #3b82f6;
+        }
+        
+        .notification-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .notification-item.unread {
+            background-color: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .notification-item.unread:hover {
+            background-color: #e0f2fe;
+        }
+        
+        .notification-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        .notification-footer {
+            padding: 12px 20px;
+            background-color: #f8fafc;
+            text-align: center;
+        }
+        
+        .mark-all-read {
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+        
+        .mark-all-read:hover {
+            color: #1d4ed8;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-online { background-color: #10b981; }
+        .status-busy { background-color: #f59e0b; }
+        .status-offline { background-color: #ef4444; }
+        
+        .nav-item {
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid #fff;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            transition: stroke-dasharray 0.35s;
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Sidebar -->
+    <div class="fixed inset-y-0 left-0 z-50 w-64 gradient-bg text-white transform transition-transform duration-300 ease-in-out" id="sidebar">
+        <div class="flex items-center justify-center h-16 border-b border-white border-opacity-20">
+            <img src="/assets/bsi-syariah.png" alt="BSI Syariah Logo" class="w-10 h-10 rounded-lg mr-3">
+            <h1 class="text-xl font-bold">BSI Syariah</h1>
+        </div>
+        
+        <nav class="mt-8 px-4">
+            <div class="nav-item active px-4 py-3 cursor-pointer" onclick="showSection('dashboard')">
+                <i class="fas fa-tachometer-alt mr-3"></i>
+                Dashboard
+            </div>
+            <div class="nav-item px-4 py-3 cursor-pointer" onclick="showSection('calls')">
+                <i class="fas fa-phone mr-3"></i>
+                Panggilan
+            </div>
+            <div class="nav-item px-4 py-3 cursor-pointer" onclick="showSection('analytics')">
+                <i class="fas fa-chart-bar mr-3"></i>
+                Analitik
+            </div>
+            <div class="nav-item px-4 py-3 cursor-pointer" onclick="showSection('settings')">
+                <i class="fas fa-cog mr-3"></i>
+                Pengaturan
+            </div>
+        </nav>
+        
+        <div class="absolute bottom-0 left-0 right-0 p-4">
+            <div class="glass-effect rounded-lg p-3">
+                <div class="flex items-center">
+                    <div class="status-indicator status-online"></div>
+                    <span class="text-sm">Sistem Online</span>
+                </div>
+                <div class="text-xs text-gray-200 mt-1">Melina AI Assistant</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="ml-64 min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900" id="page-title">Dashboard</h2>
+                        <p class="text-gray-600" id="page-subtitle">Selamat datang di BSI Syariah Voice Assistant</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="startNewCall()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                            <i class="fas fa-phone mr-2"></i>
+                            Panggilan Baru
+                        </button>
+                        <div class="relative">
+                            <button id="notificationBtn" class="notification-btn p-2 text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                                <i class="fas fa-bell text-xl"></i>
+                                <span id="notificationBadge" class="notification-badge">3</span>
+                            </button>
+                            
+                            <!-- Notification Panel -->
+                            <div id="notificationPanel" class="notification-panel">
+                                <div class="notification-header">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="font-semibold text-sm">Notifikasi</h3>
+                                        <span id="notificationCount" class="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">3 baru</span>
+                                    </div>
+                                </div>
+                                
+                                <div id="notificationList" class="max-h-64 overflow-y-auto">
+                                    <!-- Notifications will be populated here -->
+                                </div>
+                                
+                                <div class="notification-footer">
+                                    <a href="#" id="markAllRead" class="mark-all-read">Tandai semua sudah dibaca</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="p-6">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                <div class="metric-card card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Panggilan</p>
+                            <p class="text-3xl font-bold text-gray-900" id="total-calls">0</p>
+                            <p class="text-sm text-green-600">+12% dari bulan lalu</p>
+                        </div>
+                        <div class="p-3 bg-blue-100 rounded-full">
+                            <i class="fas fa-phone text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Tingkat Konversi</p>
+                            <p class="text-3xl font-bold text-gray-900" id="conversion-rate">0%</p>
+                            <p class="text-sm text-green-600">+5% dari bulan lalu</p>
+                        </div>
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Skor Sentimen Rata-rata</p>
+                            <p class="text-3xl font-bold text-gray-900" id="avg-sentiment">0</p>
+                            <p class="text-sm text-blue-600">Netral</p>
+                        </div>
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <i class="fas fa-smile text-yellow-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Kepatuhan Syariah</p>
+                            <p class="text-3xl font-bold text-gray-900" id="sharia-compliance">100%</p>
+                            <p class="text-sm text-green-600">Semua panggilan</p>
+                        </div>
+                        <div class="p-3 bg-purple-100 rounded-full">
+                            <i class="fas fa-shield-alt text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card card-hover">
+                    <div class="flex items-center justify-between">
+                        <div class="w-full">
+                            <p class="text-sm font-medium text-gray-600 mb-2">TTS Provider</p>
+                            <select id="ttsProvider" class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="azure">Azure</option>
+                                <option value="openai">OpenAI</option>
+                                <option value="elevenlabs">ElevenLabs</option>
+                                <option value="murf">Murf</option>
+                            </select>
+                        </div>
+                        <div class="p-3 bg-indigo-100 rounded-full ml-3">
+                            <i class="fas fa-microphone text-indigo-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Calls and Performance Chart -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recent Calls -->
+                <div class="metric-card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900">Panggilan Terbaru</h3>
+                        <button onclick="showSection('calls')" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            Lihat Semua
+                        </button>
+                    </div>
+                    <div id="recent-calls" class="space-y-4">
+                        <!-- Recent calls will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Performance Chart -->
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Performa Harian</h3>
+                    <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                        <div class="text-center">
+                            <i class="fas fa-chart-area text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600">Grafik performa akan ditampilkan di sini</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Calls Section -->
+        <div id="calls-section" class="p-6 hidden">
+            <div class="metric-card">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Riwayat Panggilan</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" placeholder="Cari panggilan..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="calls-list" class="space-y-4">
+                    <!-- Calls will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analytics Section -->
+        <div id="analytics-section" class="p-6 hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Analisis Sentimen</h3>
+                    <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                        <div class="text-center">
+                            <i class="fas fa-chart-pie text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600">Grafik sentimen akan ditampilkan di sini</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Minat Produk</h3>
+                    <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                        <div class="text-center">
+                            <i class="fas fa-chart-bar text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-gray-600">Grafik minat produk akan ditampilkan di sini</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings Section -->
+        <div id="settings-section" class="p-6 hidden">
+            <div class="metric-card">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Pengaturan Sistem</h3>
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Assistant</label>
+                        <input type="text" value="Melina" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bahasa Default</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="id">Bahasa Indonesia</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Notifikasi Real-time</label>
+                            <p class="text-sm text-gray-500">Terima notifikasi untuk panggilan baru</p>
+                        </div>
+                        <button class="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6"></span>
+                        </button>
+                    </div>
+                    
+                    <div class="pt-4">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                            Simpan Pengaturan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Call Modal -->
+    <div id="call-modal" class="fixed inset-0 z-50 hidden">
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Mulai Panggilan Baru</h3>
+                    <p class="text-gray-600 mb-6">Pilih mode panggilan yang diinginkan</p>
+                    
+                    <div class="space-y-3 mb-6">
+                        <button onclick="redirectToCall('inbound')" class="w-full p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200">
+                            <div class="flex items-center">
+                                <i class="fas fa-phone-alt text-blue-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium">Panggilan Masuk</div>
+                                    <div class="text-sm text-gray-500">Simulasi panggilan dari nasabah</div>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button onclick="redirectToCall('outbound')" class="w-full p-4 text-left border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200">
+                            <div class="flex items-center">
+                                <i class="fas fa-phone text-green-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium">Panggilan Keluar</div>
+                                    <div class="text-sm text-gray-500">Panggilan ke nasabah potensial</div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <!-- Voice Provider Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 text-left mb-2">Pilih Voice Provider</label>
+                        <select id="voiceProviderSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="azure">Azure (Default)</option>
+                            <option value="openai">OpenAI</option>
+                            <option value="murf">Murf</option>
+                            <option value="elevenlabs">ElevenLabs</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button onclick="closeCallModal()" class="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        let currentSection = 'dashboard';
+        let transcriptions = [];
+        
+        // Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('[id$="-section"]').forEach(el => el.classList.add('hidden'));
+            
+            // Show selected section
+            document.getElementById(section + '-section').classList.remove('hidden');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'calls': 'Panggilan',
+                'analytics': 'Analitik',
+                'settings': 'Pengaturan'
+            };
+            
+            const subtitles = {
+                'dashboard': 'Selamat datang di BSI Syariah Voice Assistant',
+                'calls': 'Kelola dan tinjau riwayat panggilan',
+                'analytics': 'Analisis performa dan tren panggilan',
+                'settings': 'Konfigurasi sistem dan preferensi'
+            };
+            
+            document.getElementById('page-title').textContent = titles[section];
+            document.getElementById('page-subtitle').textContent = subtitles[section];
+            
+            currentSection = section;
+            
+            // Load section-specific data
+            if (section === 'calls') {
+                loadCallsSection();
+            } else if (section === 'dashboard') {
+                loadDashboard();
+            }
+        }
+        
+        // Call Modal
+        function startNewCall() {
+            document.getElementById('call-modal').classList.remove('hidden');
+        }
+        
+        function closeCallModal() {
+            document.getElementById('call-modal').classList.add('hidden');
+        }
+        
+        function redirectToCall(mode) {
+            const voiceProvider = document.getElementById('voiceProviderSelect').value;
+            window.open(`/static/call.html?mode=${mode}&voice_provider=${voiceProvider}`, '_blank');
+            closeCallModal();
+        }
+        
+        // Data Loading
+        async function loadTranscriptions() {
+            try {
+                const response = await fetch(`${API_BASE}/api/transcriptions`);
+                const data = await response.json();
+                transcriptions = data.transcriptions || [];
+                return transcriptions;
+            } catch (error) {
+                console.error('Error loading transcriptions:', error);
+                return [];
+            }
+        }
+        
+        async function loadDashboard() {
+            const data = await loadTranscriptions();
+            
+            // Update stats
+            document.getElementById('total-calls').textContent = data.length;
+            
+            // Calculate conversion rate
+            const successfulCalls = data.filter(t => {
+                const messages = t.messages;
+                return messages.disposition === 'success' || messages.disposition === 'followup';
+            }).length;
+            const conversionRate = data.length > 0 ? Math.round((successfulCalls / data.length) * 100) : 0;
+            document.getElementById('conversion-rate').textContent = conversionRate + '%';
+            
+            // Calculate average sentiment
+            const sentimentScores = data.map(t => {
+                const sentiment = t.messages.sentiment;
+                if (sentiment && sentiment.score !== undefined) {
+                    return sentiment.score;
+                }
+                return 0;
+            }).filter(score => score !== 0);
+            
+            const avgSentiment = sentimentScores.length > 0 
+                ? Math.round(sentimentScores.reduce((a, b) => a + b, 0) / sentimentScores.length)
+                : 0;
+            document.getElementById('avg-sentiment').textContent = avgSentiment;
+            
+            // Update recent calls
+            updateRecentCalls(data.slice(0, 5));
+        }
+        
+        function updateRecentCalls(calls) {
+            const container = document.getElementById('recent-calls');
+            
+            if (calls.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-phone text-3xl mb-2"></i>
+                        <p>Belum ada panggilan</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = calls.map(call => {
+                const messages = call.messages;
+                const sentiment = messages.sentiment || { sentiment: 'Neutral (0.0)', score: 0 };
+                const disposition = messages.disposition || 'unknown';
+                
+                const dispositionColors = {
+                    'success': 'text-green-600 bg-green-100',
+                    'followup': 'text-yellow-600 bg-yellow-100',
+                    'rejected': 'text-red-600 bg-red-100'
+                };
+                
+                const dispositionTexts = {
+                    'success': 'Berhasil',
+                    'followup': 'Tindak Lanjut',
+                    'rejected': 'Ditolak'
+                };
+                
+                return `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200 cursor-pointer" onclick="viewCallDetail(${call.id})">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-phone text-blue-600"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">Panggilan #${call.id}</div>
+                                <div class="text-sm text-gray-500">${new Date(call.created_at).toLocaleString('id-ID')}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${dispositionColors[disposition] || 'text-gray-600 bg-gray-100'}">
+                                ${dispositionTexts[disposition] || 'Unknown'}
+                            </span>
+                            <div class="text-sm text-gray-500 mt-1">${messages.message_count || 0} pesan</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function loadCallsSection() {
+            const data = await loadTranscriptions();
+            const container = document.getElementById('calls-list');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <i class="fas fa-phone text-4xl mb-4"></i>
+                        <h3 class="text-lg font-medium mb-2">Belum ada panggilan</h3>
+                        <p class="mb-4">Mulai panggilan pertama Anda untuk melihat riwayat di sini</p>
+                        <button onclick="startNewCall()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors duration-200">
+                            <i class="fas fa-phone mr-2"></i>
+                            Panggilan Baru
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = data.map(call => {
+                const messages = call.messages;
+                const sentiment = messages.sentiment || { sentiment: 'Neutral (0.0)', score: 0 };
+                const disposition = messages.disposition || 'unknown';
+                const summary = messages.summary || {};
+                
+                const dispositionColors = {
+                    'success': 'border-green-500 bg-green-50',
+                    'followup': 'border-yellow-500 bg-yellow-50',
+                    'rejected': 'border-red-500 bg-red-50'
+                };
+                
+                const dispositionTexts = {
+                    'success': 'Berhasil',
+                    'followup': 'Tindak Lanjut',
+                    'rejected': 'Ditolak'
+                };
+                
+                return `
+                    <div class="border-l-4 ${dispositionColors[disposition] || 'border-gray-300 bg-gray-50'} p-6 rounded-lg cursor-pointer hover:shadow-md transition-shadow duration-200" onclick="viewCallDetail(${call.id})">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-phone text-blue-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">Panggilan #${call.id}</h3>
+                                    <p class="text-sm text-gray-500">${new Date(call.created_at).toLocaleString('id-ID')}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${dispositionColors[disposition] ? 'text-' + disposition + '-700' : 'text-gray-700'}">
+                                    ${dispositionTexts[disposition] || 'Unknown'}
+                                </span>
+                                <div class="text-sm text-gray-500 mt-1">Skor: ${messages.total_score || 0}/100</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <div class="text-sm font-medium text-gray-700">Sentimen</div>
+                                <div class="text-sm text-gray-600">${sentiment.sentiment || 'Neutral (0.0)'}</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-700">Minat Produk</div>
+                                <div class="text-sm text-gray-600">${messages.lead_intent || 'None'}</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-700">Kepatuhan</div>
+                                <div class="text-sm text-gray-600">${messages.compliance || 'Syariah'}</div>
+                            </div>
+                        </div>
+                        
+                        ${summary.interest_summary ? `
+                            <div class="bg-white p-3 rounded-lg">
+                                <div class="text-sm font-medium text-gray-700 mb-1">Ringkasan</div>
+                                <div class="text-sm text-gray-600">${summary.interest_summary}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function viewCallDetail(callId) {
+            // Redirect to dashboard with call detail
+            window.location.href = `/static/dashboard.html#call-${callId}`;
+        }
+        
+        // Notification System
+        let notifications = [
+            {
+                id: 1,
+                type: 'call',
+                title: 'Panggilan Baru Masuk',
+                message: 'Panggilan dari +62 812-3456-7890',
+                time: new Date(Date.now() - 5 * 60000), // 5 minutes ago
+                read: false
+            },
+            {
+                id: 2,
+                type: 'system',
+                title: 'Sistem Update',
+                message: 'Fitur analisis sentimen telah diperbarui',
+                time: new Date(Date.now() - 30 * 60000), // 30 minutes ago
+                read: false
+            },
+            {
+                id: 3,
+                type: 'alert',
+                title: 'Peringatan Kepatuhan',
+                message: 'Terdeteksi potensi pelanggaran pada panggilan #23',
+                time: new Date(Date.now() - 60 * 60000), // 1 hour ago
+                read: false
+            }
+        ];
+        
+        function updateNotificationBadge() {
+            const unreadCount = notifications.filter(n => !n.read).length;
+            const badge = document.getElementById('notificationBadge');
+            const countSpan = document.getElementById('notificationCount');
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.style.display = 'flex';
+                countSpan.textContent = `${unreadCount} baru`;
+            } else {
+                badge.style.display = 'none';
+                countSpan.textContent = 'Tidak ada notifikasi baru';
+            }
+        }
+        
+        function formatTime(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+            
+            if (minutes < 1) return 'Baru saja';
+            if (minutes < 60) return `${minutes} menit yang lalu`;
+            if (hours < 24) return `${hours} jam yang lalu`;
+            return `${days} hari yang lalu`;
+        }
+        
+        function getNotificationIcon(type) {
+            const icons = {
+                'call': 'fas fa-phone',
+                'system': 'fas fa-cog',
+                'alert': 'fas fa-exclamation-triangle',
+                'default': 'fas fa-bell'
+            };
+            return icons[type] || icons.default;
+        }
+        
+        function renderNotifications() {
+            const container = document.getElementById('notificationList');
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="notification-item text-center text-gray-500 py-8">
+                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                        <p>Tidak ada notifikasi</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = notifications.map(notification => `
+                <div class="notification-item ${!notification.read ? 'unread' : ''}" 
+                     onclick="markAsRead(${notification.id})">
+                    <div class="notification-icon">
+                        <i class="${getNotificationIcon(notification.type)}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${notification.title}</div>
+                        <div class="notification-message">${notification.message}</div>
+                        <div class="notification-time">${formatTime(notification.time)}</div>
+                    </div>
+                    ${!notification.read ? '<div class="flex-shrink-0"><div class="w-2 h-2 bg-blue-500 rounded-full"></div></div>' : ''}
+                </div>
+            `).join('');
+        }
+        
+        function showNotificationPanel() {
+            const panel = document.getElementById('notificationPanel');
+            panel.classList.add('show');
+            renderNotifications();
+        }
+        
+        function hideNotificationPanel() {
+            const panel = document.getElementById('notificationPanel');
+            panel.classList.remove('show');
+        }
+        
+        function markAsRead(notificationId) {
+            const notification = notifications.find(n => n.id === notificationId);
+            if (notification) {
+                notification.read = true;
+                updateNotificationBadge();
+                renderNotifications();
+            }
+        }
+        
+        function markAllAsRead() {
+            notifications.forEach(n => n.read = true);
+            updateNotificationBadge();
+            renderNotifications();
+        }
+        
+        function addNotification(type, title, message) {
+            const newNotification = {
+                id: Date.now(),
+                type: type,
+                title: title,
+                message: message,
+                time: new Date(),
+                read: false
+            };
+            
+            notifications.unshift(newNotification);
+            updateNotificationBadge();
+            
+            // Show a brief animation
+            const badge = document.getElementById('notificationBadge');
+            badge.style.animation = 'none';
+            setTimeout(() => {
+                badge.style.animation = 'pulse 2s infinite';
+            }, 10);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            
+            // Initialize notification system
+            updateNotificationBadge();
+            
+            // Notification button event listener
+            document.getElementById('notificationBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                const panel = document.getElementById('notificationPanel');
+                if (panel.classList.contains('show')) {
+                    hideNotificationPanel();
+                } else {
+                    showNotificationPanel();
+                }
+            });
+            
+            // Mark all as read event listener
+            document.getElementById('markAllRead').addEventListener('click', function(e) {
+                e.preventDefault();
+                markAllAsRead();
+            });
+            
+            // Close panel when clicking outside
+            document.addEventListener('click', function(e) {
+                const panel = document.getElementById('notificationPanel');
+                const btn = document.getElementById('notificationBtn');
+                
+                if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                    hideNotificationPanel();
+                }
+            });
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                if (currentSection === 'dashboard') {
+                    loadDashboard();
+                } else if (currentSection === 'calls') {
+                    loadCallsSection();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
